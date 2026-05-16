@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import ru.thisstp.memorymcp.entity.Article;
@@ -81,7 +82,8 @@ public class HabrParserService {
             }
             try {
                 Article article = fetch(String.valueOf(id), url);
-                if (article.getTitle() == null || article.getTitle().isBlank()) {
+                if (article.getTitle() == null || article.getTitle().isBlank()
+                        || article.getText() == null || article.getText().isBlank()) {
                     failed++;
                     log.debug("Empty article id={}, skipping", id);
                     continue;
@@ -146,11 +148,12 @@ public class HabrParserService {
             }
             JsonNode root = objectMapper.readTree(resp.body());
 
+            String title = Jsoup.parse(root.path("titleHtml").asText("")).text().strip();
             String markdown = HtmlToMarkdown.convert(root.path("textHtml").asText(""));
 
             return Article.builder()
                     .lang(root.path("lang").asText())
-                    .title(root.path("titleHtml").asText())
+                    .title(title)
                     .text(markdown)
                     .url(url)
                     .createdAt(LocalDateTime.now())
