@@ -2,16 +2,18 @@
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /workspace
 
-# copy maven wrapper + pom first for layer caching
-COPY .mvn .mvn
-COPY mvnw mvnw
+# Install Maven because this repository does not include Maven Wrapper files.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends maven \
+    && rm -rf /var/lib/apt/lists/*
+
+# copy pom first for layer caching
 COPY pom.xml pom.xml
-RUN if [ -f mvnw ]; then chmod +x mvnw && ./mvnw -q -B -DskipTests dependency:go-offline; fi
+RUN mvn -q -B -DskipTests dependency:go-offline
 
 # copy sources and build
 COPY src src
-RUN if [ -f mvnw ]; then ./mvnw -q -B -DskipTests package; \
-    else apt-get update && apt-get install -y --no-install-recommends maven && mvn -q -B -DskipTests package; fi
+RUN mvn -q -B -DskipTests package
 
 ### runtime stage
 FROM eclipse-temurin:17-jre
