@@ -21,10 +21,19 @@ public class HtmlToMarkdown {
         String markdown = converter.convert(html);
 
         return markdown
-                .replaceAll("!\\[.*?\\]\\(.*?\\)", "")
-                .replaceAll("\\{#[^}]+\\}", "")
+                .replaceAll("!\\[.*?\\]\\(.*?\\)", "")            // strip images
+                .replaceAll("\\{#[^}]+\\}", "")                    // strip {#anchors}
                 .replaceAll("(?m)^https://sourcecraft\\.dev/\\s*$", "")
                 .replaceAll("<br\\s*/?>", "")
+                .replace("\\<\\<", "«")                            // guillemets (must be before single \< \>)
+                .replace("\\>\\>", "»")
+                .replace("\\<", "<")                               // unescape leftover \<  → <
+                .replace("\\>", ">")                               // unescape leftover \>  → >
+                .replace("\\&", "&")                               // unescape ampersand
+                .replace("\\~", "~")                               // unescape tilde
+                .replaceAll("\\[\\s*]\\([^)]*\\)", "")             // strip empty [](url)
+                .replaceAll("(?<=\\s)---(?=\\s)", "—")             // em-dash (--- between spaces)
+                .replaceAll("(?<=\\s)--(?=\\s)", "—")              // em-dash (-- between spaces)
                 .replaceAll("\n{3,}", "\n\n")
                 .strip();
     }
