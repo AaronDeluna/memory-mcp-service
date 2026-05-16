@@ -1,0 +1,9 @@
+target
+.idea
+.gigaide
+.git
+.github
+*.iml
+.DS_Store
+.vscode
+README.md
