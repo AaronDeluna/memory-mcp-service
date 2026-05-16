@@ -1,39 +1,37 @@
 services:
 
-  postgres:
+  memory-mcp-service-db:
     image: postgres:16
-    container_name: memory-mcp-postgres
+    container_name: memory-mcp-service-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-habr}
-      POSTGRES_USER: ${POSTGRES_USER:-habr}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-habr}
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
       # IMPORTANT: named volume — data persists across container restarts/recreates
       # Wiping data requires explicit `docker compose down -v`.
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-habr} -d ${POSTGRES_DB:-habr}"]
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  app:
-    image: ${APP_IMAGE:-ghcr.io/OWNER/memory-mcp:latest}
-    container_name: memory-mcp-app
+  memory-mcp-service:
+    image: ${APP_IMAGE:?APP_IMAGE is required}
+    container_name: memory-mcp-service
     restart: unless-stopped
     depends_on:
-      postgres:
+      memory-mcp-service-db:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-habr}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-habr}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-habr}
-      JAVA_OPTS: "-Xms256m -Xmx768m"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://memory-mcp-service-db:5432/${POSTGRES_DB:?POSTGRES_DB is required}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:?POSTGRES_USER is required}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      JAVA_OPTS: ${JAVA_OPTS:-"-Xms256m -Xmx768m"}
     ports:
-      - "8080:8080"
+      - "${APP_PORT:-8080}:8080"
 
 volumes:
   postgres_data:
