@@ -1,0 +1,4 @@
+services:
+  memory-mcp-service-db:
+    ports:
+      - "5432:5432"
