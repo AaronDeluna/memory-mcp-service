@@ -1,6 +1,8 @@
 package ru.thisstp.memorymcp.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,13 +20,13 @@ public class HabrController {
     private final HabrParserService habrParserService;
 
     @PostMapping("/start-parse")
-    public Article startParse(@RequestParam String id) {
-        return habrParserService.parse(id);
+    public ResponseEntity<Article> startParse(@RequestParam String id) {
+        return ResponseEntity.ok(habrParserService.parse(id));
     }
 
     @PostMapping("/start-parse-all")
-    public Map<String, String> startParseAll() {
-        habrParserService.parseAll();
-        return Map.of("status", "started");
+    public ResponseEntity<Map<String, String>> startParseAll() {
+        habrParserService.startParseAll();
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of("status", "started"));
     }
 }
