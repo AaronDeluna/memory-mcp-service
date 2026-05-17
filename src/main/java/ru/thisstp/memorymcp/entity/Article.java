@@ -39,6 +39,9 @@ public class Article {
     @Column(nullable = false, unique = true, columnDefinition = "TEXT")
     private String url;
 
+    @Column(name = "text_hash", nullable = false, length = 64)
+    private String textHash;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 }
